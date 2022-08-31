@@ -1,4 +1,5 @@
 use crate::util::*;
+use std::fmt;
 
 #[derive(Clone, Copy)]
 struct PencilMarks {
@@ -51,6 +52,13 @@ impl PencilMarks {
     }
 }
 
+impl fmt::Debug for PencilMarks {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self.marks).unwrap();
+        Ok(())
+    }
+}
+
 #[derive(Clone, Copy)]
 enum NoteCell {
     Partial(PencilMarks),
@@ -62,21 +70,17 @@ pub struct Notes {
     cells: [NoteCell; 81],
 }
 
-fn cell_index(row: usize, column: usize) -> usize { row * 9 + column }
-
 impl Notes {
     pub fn new() -> Notes {
-        Notes { cells: [NoteCell::Empty; 81] }
+        Notes {
+            cells: [NoteCell::Empty; 81],
+        }
     }
 
     fn mark_at(&mut self, value: u8, row: usize, column: usize) {
         self.cells[cell_index(row, column)] = match self.cells[cell_index(row, column)] {
-            NoteCell::Empty => {
-                NoteCell::Partial(PencilMarks::from(vec![value]))
-            },
-            NoteCell::Partial(marks) => {            
-                NoteCell::Partial(marks.with(vec![value]))
-            }
+            NoteCell::Empty => NoteCell::Partial(PencilMarks::from(vec![value])),
+            NoteCell::Partial(marks) => NoteCell::Partial(marks.with(vec![value])),
             NoteCell::Assigned(value) => NoteCell::Assigned(value),
         }
     }
@@ -122,7 +126,26 @@ impl Notes {
         }
     }
 
-    fn assign_at(&mut self, value: u8, row: usize, column: usize) {
+    pub fn assign_at(&mut self, value: u8, row: usize, column: usize) {
         self.cells[cell_index(row, column)] = NoteCell::Assigned(value);
+    }
+}
+
+impl fmt::Debug for Notes {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for (i, cell) in self.cells.iter().enumerate() {
+            let row = i / 9;
+            let column = i % 9;
+            match cell {
+                NoteCell::Empty => writeln!(f, "[{},{}]: .", row + 1, column + 1).unwrap(),
+                NoteCell::Partial(marks) => {
+                    writeln!(f, "[{},{}]: {:?}", row + 1, column + 1, marks).unwrap()
+                }
+                NoteCell::Assigned(value) => {
+                    writeln!(f, "[{},{}]: {}", row + 1, column + 1, value).unwrap()
+                }
+            };
+        }
+        Ok(())
     }
 }

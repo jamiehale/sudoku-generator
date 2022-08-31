@@ -5,3 +5,7 @@ pub fn house_from_row_and_column(row: usize, column: usize) -> usize {
 pub fn starting_row_and_column_from_house(house: usize) -> (usize, usize) {
     (house / 3 * 3, house % 3 * 3)
 }
+
+pub fn cell_index(row: usize, column: usize) -> usize {
+    row * 9 + column
+}
